@@ -209,12 +209,10 @@ int Value::compare(const Value &other) const
   } else if (this->attr_type_ == FLOATS && other.attr_type_ == INTS) {
     float other_data = other.num_value_.int_value_;
     return common::compare_float((void *)&this->num_value_.float_value_, (void *)&other_data);
-  }
-  else if (this->attr_type_ == DATES && other.attr_type_ == CHARS) {
+  } else if (this->attr_type_ == DATES && other.attr_type_ == CHARS) {
     other.char_to_int32();
     return common::compare_int((void *)&this->num_value_.date_value_, (void *)&other.num_value_.date_value_);
-  }
-  else if (other.attr_type_ == DATES && this->attr_type_ == CHARS) {
+  } else if (other.attr_type_ == DATES && this->attr_type_ == CHARS) {
     this->char_to_int32();
     return common::compare_int((void *)&other.num_value_.date_value_, (void *)&this->num_value_.date_value_);
   }
@@ -321,13 +319,25 @@ bool Value::get_boolean() const
 
 bool Value::is_num(const char c) { return c >= '0' && c <= '9'; }
 
+int32_t convertToEightDigit(const std::string &dateStr)
+{
+  std::string year, month, day;
+  char        delimiter;
+
+  std::istringstream iss(dateStr);
+  iss >> year >> delimiter >> month >> delimiter >> day;
+
+  int32_t result = std::stoi(year) * 10000 + std::stoi(month) * 100 + std::stoi(day);
+
+  return result;
+}
+
 int Value::is_date(const char *date)
 {
-  if (is_num(date[0]) && is_num(date[1]) && is_num(date[2]) && is_num(date[3]) && is_num(date[5]) && is_num(date[6]) &&
-      is_num(date[8]) && is_num(date[9]) && date[4] == '-' && date[7] == '-') {
-    return 1;
-  }
-  return 0;
+  std::string date1(date);
+  std::regex  pattern(R"(\b\d{4}-\d{1,2}-\d{1,2}\b)");
+  std::smatch match;
+  return std::regex_match(date1, match, pattern);
 }
 
 bool Value::cheak_date(int32_t date) const
@@ -365,13 +375,38 @@ int Value::char_to_int32() const
   *att          = DATES;
   int32_t year  = (this->str_value_[0] - '0') * 10e6 + (this->str_value_[1] - '0') * 10e5 +
                  (this->str_value_[2] - '0') * 10e4 + (this->str_value_[3] - '0') * 10e3;
-  int32_t month                        = (this->str_value_[5] - '0') * 10e2 + (this->str_value_[6] - '0') * 10e1;
-  int     day                          = (this->str_value_[8] - '0') * 10e0 + (this->str_value_[9] - '0');
-  *(int32_t *)(&num_value_.int_value_) = year + month + day;
+  *(int32_t *)(&num_value_.int_value_) += year;
+  std::regex  pattern1(R"(\b\d{4}-\d{1}-\d{1,2}\b)");
+  std::regex  pattern2(R"(\b\d{4}-\d{1,2}-\d{1}\b)");
+  std::smatch match;
+  // return std::regex_match(date1, match, pattern);
+  if (std::regex_match(str_value_, match, pattern1)) {
+    int32_t month = (0) * 10e2 + (this->str_value_[5] - '0') * 10e1;
+    *(int32_t *)(&num_value_.int_value_) += month;
+    if (std::regex_match(str_value_, match, pattern2)) {
+      int day = (0) * 10e0 + (this->str_value_[7] - '0');
+      *(int32_t *)(&num_value_.int_value_) += day;
+    } else {
+      int day = (this->str_value_[7]) * 10e0 + (this->str_value_[8] - '0');
+      *(int32_t *)(&num_value_.int_value_) += day;
+    }
+  } else {
+    int32_t month = (this->str_value_[5] - '0') * 10e2 + (this->str_value_[6] - '0') * 10e1;
+    *(int32_t *)(&num_value_.int_value_) += month;
+
+    if (std::regex_match(str_value_, match, pattern2)) {
+      int day = (0) * 10e0 + (this->str_value_[8] - '0');
+      *(int32_t *)(&num_value_.int_value_) += day;
+    } else {
+      int day = (this->str_value_[8]) * 10e0 + (this->str_value_[9] - '0');
+      *(int32_t *)(&num_value_.int_value_) += day;
+    }
+  }
+  //*(int32_t *)(&num_value_.int_value_) = year + month + day;
   if (!cheak_date(num_value_.date_value_))
     return 0;
   return 1;
 }
-// insert into test values('2010-02-28',10)
+// insert into test values('2010-2-2',10)
 // select * from test where age > '2015-10-10'  git config --global user.name "mmmttt"  git config --global user.email
 // "503194395@qq.com"

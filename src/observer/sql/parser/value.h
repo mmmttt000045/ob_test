@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 
 #include <cstdint>
 #include <string>
+#include <regex>
 
 /**
  * @brief 属性的类型
@@ -92,6 +93,7 @@ public:
 private:
   AttrType attr_type_ = UNDEFINED;
   int      length_    = 0;
+  int      date_case  = 0;
 
   union
   {
