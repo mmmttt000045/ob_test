@@ -77,6 +77,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
         INT_T
         STRING_T
         FLOAT_T
+        DATE_T
         HELP
         EXIT
         DOT //QUOTE
@@ -340,6 +341,7 @@ type:
     INT_T      { $$=INTS; }
     | STRING_T { $$=CHARS; }
     | FLOAT_T  { $$=FLOATS; }
+    | DATE_T   { $$=DATES; }
     ;
 insert_stmt:        /*insert   语句的语法解析树*/
     INSERT INTO ID VALUES LBRACE value value_list RBRACE 
@@ -505,6 +507,18 @@ select_attr:
       }
       $$->emplace_back(*$1);
       delete $1;
+    }
+    |'*' COMMA rel_attr attr_list{
+      $$ = new std::vector<RelAttrSqlNode>;
+      RelAttrSqlNode attr;
+      attr.relation_name  = "";
+      attr.attribute_name = "*";
+      if ($4 != nullptr) {
+        $$ = $4;
+      }
+      $$->emplace_back(*$3);
+      $$->emplace_back(attr);
+      delete $3;
     }
     ;
 
