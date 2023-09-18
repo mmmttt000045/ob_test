@@ -56,7 +56,7 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
     const AttrType   value_type = values[i].attr_type();
     if (values[i].attr_type() == 1 && Value::is_date(values[i].get_string().c_str())) {
       if (!values[i].char_to_int32()) {
-        LOG_WARN("field type mismatch. table=%s, field=%s, field type=%d, value_type=%d",
+        LOG_WARN("Date type mismatch. table=%s, field=%s, field type=%d, value_type=%d",
           table_name, field_meta->name(), field_type, value_type);
         return RC::SCHEMA_FIELD_TYPE_MISMATCH;
       }

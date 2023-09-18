@@ -210,6 +210,14 @@ int Value::compare(const Value &other) const
     float other_data = other.num_value_.int_value_;
     return common::compare_float((void *)&this->num_value_.float_value_, (void *)&other_data);
   }
+  else if (this->attr_type_ == DATES && other.attr_type_ == CHARS) {
+    other.char_to_int32();
+    return common::compare_int((void *)&this->num_value_.date_value_, (void *)&other.num_value_.date_value_);
+  }
+  else if (other.attr_type_ == DATES && this->attr_type_ == CHARS) {
+    this->char_to_int32();
+    return common::compare_int((void *)&other.num_value_.date_value_, (void *)&this->num_value_.date_value_);
+  }
   LOG_WARN("not supported");
   return -1;  // TODO return rc?
 }
@@ -365,4 +373,5 @@ int Value::char_to_int32() const
   return 1;
 }
 // insert into test values('2010-02-28',10)
-// select * from test where age > '2015-10-10'  git config --global user.name "mmmttt"  git config --global user.email "503194395@qq.com"
+// select * from test where age > '2015-10-10'  git config --global user.name "mmmttt"  git config --global user.email
+// "503194395@qq.com"
